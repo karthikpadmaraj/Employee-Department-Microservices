@@ -1,8 +1,10 @@
+
+
 package com.oec.employee.controller;
  
-import com.oec.employee.entity.Employee;
-
-import com.oec.employee.service.EmployeeService;
+import java.util.List;
+ 
+import jakarta.validation.Valid;
  
 import org.springframework.http.HttpStatus;
 
@@ -10,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
  
-import java.util.List;
+import com.oec.employee.entity.Employee;
+
+import com.oec.employee.service.EmployeeService;
  
 @RestController
 
@@ -26,73 +30,55 @@ public class EmployeeController {
 
     }
  
-    // Create employee
-
     @PostMapping
 
     public ResponseEntity<Employee> createEmployee(
 
-            @RequestBody Employee employee) {
+            @Valid @RequestBody Employee employee) {
  
-        Employee savedEmployee =
-
-                employeeService.createEmployee(employee);
+        Employee saved = employeeService.createEmployee(employee);
  
-        return ResponseEntity.status(HttpStatus.CREATED)
-
-                .body(savedEmployee);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
 
     }
  
-    // Get all employees
-
     @GetMapping
 
     public ResponseEntity<List<Employee>> getAllEmployees() {
- 
-        return ResponseEntity.ok(
 
-                employeeService.getAllEmployees());
+        return ResponseEntity.ok(employeeService.getAllEmployees());
 
     }
  
-    // Get employee by ID
-
     @GetMapping("/{id}")
 
     public ResponseEntity<Employee> getEmployeeById(
 
             @PathVariable Long id) {
- 
-        return ResponseEntity.ok(
 
-                employeeService.getEmployeeById(id));
+        return ResponseEntity.ok(employeeService.getEmployeeById(id));
 
     }
  
-    // Get employees by department ID
-
     @GetMapping("/department/{departmentId}")
 
     public ResponseEntity<List<Employee>> getEmployeesByDepartment(
 
             @PathVariable Long departmentId) {
- 
+
         return ResponseEntity.ok(
 
                 employeeService.getEmployeesByDepartment(departmentId));
 
     }
  
-    // Update employee
-
     @PutMapping("/{id}")
 
     public ResponseEntity<Employee> updateEmployee(
 
             @PathVariable Long id,
 
-            @RequestBody Employee employee) {
+            @Valid @RequestBody Employee employee) {
  
         return ResponseEntity.ok(
 
@@ -100,8 +86,6 @@ public class EmployeeController {
 
     }
  
-    // Delete employee
-
     @DeleteMapping("/{id}")
 
     public ResponseEntity<Void> deleteEmployee(
@@ -109,7 +93,7 @@ public class EmployeeController {
             @PathVariable Long id) {
  
         employeeService.deleteEmployee(id);
- 
+
         return ResponseEntity.noContent().build();
 
     }
