@@ -1,14 +1,20 @@
+
+
 package com.oec.department.service;
  
-import com.oec.department.entity.Department;
-
-import com.oec.department.repository.DepartmentRepository;
+import java.util.List;
  
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
  
-import java.util.List;
+import com.oec.department.entity.Department;
+
+import com.oec.department.exception.DuplicateResourceException;
+
+import com.oec.department.exception.ResourceNotFoundException;
+
+import com.oec.department.repository.DepartmentRepository;
  
 @Service
 
@@ -24,26 +30,24 @@ public class DepartmentService {
 
     }
  
-    // Create department
-
     public Department createDepartment(Department department) {
  
-        if (departmentRepository.existsByNameIgnoreCase(
+        String name = department.getName().trim();
+ 
+        if (departmentRepository.existsByNameIgnoreCase(name)) {
 
-                department.getName().trim())) {
+            throw new DuplicateResourceException(
 
-            throw new RuntimeException("Department name already exists");
+                    "Department name already exists: " + name);
 
         }
  
-        department.setName(department.getName().trim());
- 
+        department.setName(name);
+
         return departmentRepository.save(department);
 
     }
  
-    // Get all departments
-
     @Transactional(readOnly = true)
 
     public List<Department> getAllDepartments() {
@@ -52,50 +56,48 @@ public class DepartmentService {
 
     }
  
-    // Get department by ID
-
     @Transactional(readOnly = true)
 
     public Department getDepartmentById(Long id) {
 
         return departmentRepository.findById(id)
 
-                .orElseThrow(() ->
+                .orElseThrow(() -> new ResourceNotFoundException(
 
-                    new RuntimeException("Department not found with ID: " + id));
-
-    }
- 
-    // Update department
-
-    public Department updateDepartment(Long id, Department updatedDepartment) {
- 
-        Department existingDepartment = getDepartmentById(id);
- 
-        departmentRepository.findByNameIgnoreCase(
-
-                updatedDepartment.getName().trim()
-
-        ).ifPresent(department -> {
-
-            if (!department.getId().equals(id)) {
-
-                throw new RuntimeException("Department name already exists");
-
-            }
-
-        });
- 
-        existingDepartment.setName(updatedDepartment.getName().trim());
-
-        existingDepartment.setDescription(updatedDepartment.getDescription());
- 
-        return departmentRepository.save(existingDepartment);
+                        "Department not found with ID: " + id));
 
     }
  
-    // Delete department
+    public Department updateDepartment(
 
+            Long id, Department updatedDepartment) {
+ 
+        Department existing = getDepartmentById(id);
+
+        String name = updatedDepartment.getName().trim();
+ 
+        departmentRepository.findByNameIgnoreCase(name)
+
+                .ifPresent(found -> {
+
+                    if (!found.getId().equals(id)) {
+
+                        throw new DuplicateResourceException(
+
+                                "Department name already exists: " + name);
+
+                    }
+
+                });
+ 
+        existing.setName(name);
+
+        existing.setDescription(updatedDepartment.getDescription());
+ 
+        return departmentRepository.save(existing);
+
+    }
+ 
     public void deleteDepartment(Long id) {
 
         Department department = getDepartmentById(id);

@@ -1,8 +1,10 @@
+
+
 package com.oec.department.controller;
  
-import com.oec.department.entity.Department;
-
-import com.oec.department.service.DepartmentService;
+import java.util.List;
+ 
+import jakarta.validation.Valid;
  
 import org.springframework.http.HttpStatus;
 
@@ -10,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
  
-import java.util.List;
+import com.oec.department.entity.Department;
+
+import com.oec.department.service.DepartmentService;
  
 @RestController
 
@@ -26,38 +30,28 @@ public class DepartmentController {
 
     }
  
-    // Create department
-
     @PostMapping
 
     public ResponseEntity<Department> createDepartment(
 
-            @RequestBody Department department) {
+            @Valid @RequestBody Department department) {
  
-        Department savedDepartment =
-
-                departmentService.createDepartment(department);
+        Department saved = departmentService.createDepartment(department);
  
-        return ResponseEntity.status(HttpStatus.CREATED)
-
-                .body(savedDepartment);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
 
     }
  
-    // Get all departments
-
     @GetMapping
 
     public ResponseEntity<List<Department>> getAllDepartments() {
- 
+
         return ResponseEntity.ok(
 
                 departmentService.getAllDepartments());
 
     }
  
-    // Get department by ID
-
     @GetMapping("/{id}")
 
     public ResponseEntity<Department> getDepartmentById(
@@ -70,15 +64,13 @@ public class DepartmentController {
 
     }
  
-    // Update department
-
     @PutMapping("/{id}")
 
     public ResponseEntity<Department> updateDepartment(
 
             @PathVariable Long id,
 
-            @RequestBody Department department) {
+            @Valid @RequestBody Department department) {
  
         return ResponseEntity.ok(
 
@@ -86,8 +78,6 @@ public class DepartmentController {
 
     }
  
-    // Delete department
-
     @DeleteMapping("/{id}")
 
     public ResponseEntity<Void> deleteDepartment(
@@ -95,7 +85,7 @@ public class DepartmentController {
             @PathVariable Long id) {
  
         departmentService.deleteDepartment(id);
- 
+
         return ResponseEntity.noContent().build();
 
     }
