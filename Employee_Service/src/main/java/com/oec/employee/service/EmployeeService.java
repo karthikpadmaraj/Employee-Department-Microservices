@@ -1,16 +1,22 @@
+
+
 package com.oec.employee.service;
  
-import com.oec.employee.client.DepartmentClient;
-
-import com.oec.employee.entity.Employee;
-
-import com.oec.employee.repository.EmployeeRepository;
+import java.util.List;
  
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
  
-import java.util.List;
+import com.oec.employee.client.DepartmentClient;
+
+import com.oec.employee.entity.Employee;
+
+import com.oec.employee.exception.DuplicateResourceException;
+
+import com.oec.employee.exception.ResourceNotFoundException;
+
+import com.oec.employee.repository.EmployeeRepository;
  
 @Service
 
@@ -22,37 +28,27 @@ public class EmployeeService {
 
     private final DepartmentClient departmentClient;
  
-    public EmployeeService(
+    public EmployeeService(EmployeeRepository employeeRepository,
 
-            EmployeeRepository employeeRepository,
+                           DepartmentClient departmentClient) {
 
-            DepartmentClient departmentClient) {
- 
         this.employeeRepository = employeeRepository;
 
         this.departmentClient = departmentClient;
 
     }
  
-    // Create employee
-
     public Employee createEmployee(Employee employee) {
  
-        // Verify that the department exists
-
-        departmentClient.validateDepartment(
-
-                employee.getDepartmentId());
+        departmentClient.validateDepartment(employee.getDepartmentId());
  
-        // Check for duplicate email
-
         String email = employee.getEmail().trim().toLowerCase();
  
         if (employeeRepository.existsByEmailIgnoreCase(email)) {
 
-            throw new RuntimeException(
+            throw new DuplicateResourceException(
 
-                    "Employee email already exists");
+                    "Employee email already exists: " + email);
 
         }
  
@@ -66,8 +62,6 @@ public class EmployeeService {
 
     }
  
-    // Get all employees
-
     @Transactional(readOnly = true)
 
     public List<Employee> getAllEmployees() {
@@ -76,98 +70,70 @@ public class EmployeeService {
 
     }
  
-    // Get employee by ID
-
     @Transactional(readOnly = true)
 
     public Employee getEmployeeById(Long id) {
- 
+
         return employeeRepository.findById(id)
 
-                .orElseThrow(() ->
+                .orElseThrow(() -> new ResourceNotFoundException(
 
-                        new RuntimeException(
-
-                                "Employee not found with ID: " + id));
+                        "Employee not found with ID: " + id));
 
     }
  
-    // Get employees by department ID
-
     @Transactional(readOnly = true)
 
-    public List<Employee> getEmployeesByDepartment(
-
-            Long departmentId) {
+    public List<Employee> getEmployeesByDepartment(Long departmentId) {
  
-        // Verify that the department exists
-
         departmentClient.validateDepartment(departmentId);
  
         return employeeRepository.findByDepartmentId(departmentId);
 
     }
  
-    // Update employee
-
-    public Employee updateEmployee(
-
-            Long id, Employee updatedEmployee) {
+    public Employee updateEmployee(Long id, Employee updatedEmployee) {
  
-        Employee existingEmployee = getEmployeeById(id);
+        Employee existing = getEmployeeById(id);
  
-        // Verify that the new department exists
-
         departmentClient.validateDepartment(
 
                 updatedEmployee.getDepartmentId());
  
-        String email = updatedEmployee.getEmail()
-
-                .trim().toLowerCase();
+        String email = updatedEmployee.getEmail().trim().toLowerCase();
  
-        // Check whether another employee uses this email
-
         employeeRepository.findByEmailIgnoreCase(email)
 
-                .ifPresent(employee -> {
+                .ifPresent(found -> {
 
-                    if (!employee.getId().equals(id)) {
+                    if (!found.getId().equals(id)) {
 
-                        throw new RuntimeException(
+                        throw new DuplicateResourceException(
 
-                                "Employee email already exists");
+                                "Employee email already exists: " + email);
 
                     }
 
                 });
  
-        existingEmployee.setFirstName(
+        existing.setFirstName(updatedEmployee.getFirstName().trim());
 
-                updatedEmployee.getFirstName().trim());
- 
-        existingEmployee.setLastName(
+        existing.setLastName(updatedEmployee.getLastName().trim());
 
-                updatedEmployee.getLastName().trim());
- 
-        existingEmployee.setEmail(email);
+        existing.setEmail(email);
 
-        existingEmployee.setPhone(updatedEmployee.getPhone());
- 
-        existingEmployee.setDepartmentId(
+        existing.setPhone(updatedEmployee.getPhone());
 
-                updatedEmployee.getDepartmentId());
+        existing.setDepartmentId(updatedEmployee.getDepartmentId());
  
-        return employeeRepository.save(existingEmployee);
+        return employeeRepository.save(existing);
 
     }
  
-    // Delete employee
-
     public void deleteEmployee(Long id) {
- 
+
         Employee employee = getEmployeeById(id);
- 
+
         employeeRepository.delete(employee);
 
     }

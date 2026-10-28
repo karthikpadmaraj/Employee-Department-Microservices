@@ -1,16 +1,20 @@
+
+
 package com.oec.employee.entity;
  
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
 
-import jakarta.persistence.Entity;
+import jakarta.validation.constraints.Email;
 
-import jakarta.persistence.GeneratedValue;
+import jakarta.validation.constraints.NotBlank;
 
-import jakarta.persistence.GenerationType;
+import jakarta.validation.constraints.NotNull;
 
-import jakarta.persistence.Id;
+import jakarta.validation.constraints.Positive;
 
-import jakarta.persistence.Table;
+import jakarta.validation.constraints.Pattern;
+
+import jakarta.validation.constraints.Size;
  
 @Entity
 
@@ -24,22 +28,48 @@ public class Employee {
 
     private Long id;
  
+    @NotBlank(message = "First name is required")
+
+    @Size(max = 80, message = "First name must not exceed 80 characters")
+
     @Column(nullable = false, length = 80)
 
     private String firstName;
  
+    @NotBlank(message = "Last name is required")
+
+    @Size(max = 80, message = "Last name must not exceed 80 characters")
+
     @Column(nullable = false, length = 80)
 
     private String lastName;
  
+    @NotBlank(message = "Email is required")
+
+    @Email(message = "Enter a valid email address")
+
+    @Size(max = 150, message = "Email must not exceed 150 characters")
+
     @Column(nullable = false, unique = true, length = 150)
 
     private String email;
  
+    @Pattern(
+
+        regexp = "^[0-9+() -]{7,20}$",
+
+        message = "Phone must contain 7-20 valid phone characters"
+
+    )
+
     @Column(length = 20)
 
     private String phone;
  
+    @NotNull(message = "Department ID is required")
+
+    @Positive(message = "Department ID must be positive")
+
     @Column(nullable = false)
 
     private Long departmentId;
@@ -48,9 +78,9 @@ public class Employee {
 
     }
  
-    public Employee(String firstName, String lastName,
+    public Employee(String firstName, String lastName, String email,
 
-                    String email, String phone, Long departmentId) {
+                    String phone, Long departmentId) {
 
         this.firstName = firstName;
 
